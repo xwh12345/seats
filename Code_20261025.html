@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>婚礼座位安排表</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background-color: #fff8f5;
+            color: #6b4444;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .title {
+            text-align: center;
+            font-size: 32px;
+            color: #9c5c5c;
+            margin:20px 0;
+            letter-spacing:6px;
+        }
+        .btn-row{
+            display:flex;
+            gap:10px;
+            justify-content:center;
+            margin-bottom:16px;
+        }
+        .back-btn,.export-btn{
+            padding:10px 16px;
+            background:#e9c9c9;
+            border:none;
+            border-radius:12px;
+            font-size:16px;
+            color:#6b4444;
+            cursor:pointer;
+        }
+        .back-btn{
+            display:none;
+        }
+        /* 平面图页面 */
+        .page-map{
+            display:block;
+        }
+        .page-table{
+            display:none;
+        }
+        .stage{
+            background:#e8a8b4;
+            color:white;
+            text-align:center;
+            font-size:28px;
+            font-weight:bold;
+            padding:24px;
+            border-radius:24px;
+            margin-bottom:20px;
+        }
+        .row-middle{
+            display:grid;
+            grid-template-columns: 1fr 120px 1fr;
+            gap:12px;
+            margin-bottom:24px;
+        }
+        .col-left,.col-right{
+            background:#fff1ee;
+            padding:16px;
+            border-radius:16px;
+        }
+        .col-left h3,.col-right h3{
+            text-align:center;
+            margin-bottom:12px;
+            font-weight:normal;
+        }
+        .tunnel{
+            background:#f3ddcf;
+            border-radius:16px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:24px;
+            font-weight:bold;
+        }
+        .desk-grid{
+            display:grid;
+            grid-template-columns: repeat(6,1fr);
+            gap:10px;
+        }
+        .desk-item{
+            width:44px;
+            height:44px;
+            border-radius:50%;
+            background:#f3ddcf;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            cursor:pointer;
+            margin:0 auto;
+            transition:0.2s;
+        }
+        .desk-item:hover{
+            background:#e8b8b8;
+            transform:scale(1.05);
+        }
+        .zone-bottom{
+            background:#fff1ee;
+            padding:20px;
+            border-radius:16px;
+            margin-bottom:20px;
+        }
+        .zone-bottom h3{
+            text-align:center;
+            margin-bottom:16px;
+            font-weight:normal;
+        }
+        .bottom-grid{
+            display:grid;
+            grid-template-columns: repeat(6,1fr);
+            gap:12px;
+        }
+        .entrance{
+            background:#fff1ee;
+            padding:18px;
+            border-radius:16px;
+            display:flex;
+            justify-content:space-between;
+            font-size:18px;
+        }
+        /* 单桌详情页面 */
+        .table-card{
+            background:#fff;
+            border-radius:20px;
+            padding:24px;
+        }
+        .table-head{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            margin-bottom:20px;
+        }
+        .table-head h2{
+            font-size:24px;
+        }
+        .class-select{
+            padding:8px 12px;
+            font-size:16px;
+            border:1px solid #e0c2c2;
+            border-radius:8px;
+        }
+        .seat-grid{
+            display:grid;
+            grid-template-columns: repeat(2,1fr);
+            gap:14px;
+        }
+        .seat-item{
+            display:flex;
+            align-items:center;
+            gap:8px;
+        }
+        .seat-item label{
+            width:48px;
+        }
+        .seat-item input{
+            flex:1;
+            padding:10px;
+            border:1px solid #e8d4d4;
+            border-radius:8px;
+            font-size:16px;
+        }
+        .export-modal{
+            display:none;
+            position:fixed;
+            top:0;
+            left:0;
+            width:100%;
+            height:100%;
+            background:rgba(0,0,0,0.4);
+            align-items:center;
+            justify-content:center;
+            padding:20px;
+        }
+        .export-content{
+            background:#fff;
+            padding:24px;
+            border-radius:16px;
+            width:100%;
+            max-width:700px;
+            max-height:80vh;
+            overflow:auto;
+        }
+        textarea{
+            width:100%;
+            min-height:400px;
+            padding:12px;
+            border:1px solid #ddd;
+            border-radius:8px;
+            white-space:pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">— 现 场 平 面 图 —</div>
+        <div class="btn-row">
+            <button class="export-btn" id="exportAllBtn">📄 导出全部座位清单</button>
+            <button class="back-btn" id="backBtn">← 返回平面图</button>
+        </div>
+
+        <!-- 平面图页面 -->
+        <div class="page-map" id="pageMap">
+            <div class="stage">舞 台</div>
+            <div class="row-middle">
+                <div class="col-left">
+                    <h3>T台左侧 · 1~24桌</h3>
+                    <div class="desk-grid">
+                        <div class="desk-item" data-no="1">1</div>
+                        <div class="desk-item" data-no="2">2</div>
+                        <div class="desk-item" data-no="3">3</div>
+                        <div class="desk-item" data-no="4">4</div>
+                        <div class="desk-item" data-no="5">5</div>
+                        <div class="desk-item" data-no="6">6</div>
+                        <div class="desk-item" data-no="7">7</div>
+                        <div class="desk-item" data-no="8">8</div>
+                        <div class="desk-item" data-no="9">9</div>
+                        <div class="desk-item" data-no="10">10</div>
+                        <div class="desk-item" data-no="11">11</div>
+                        <div class="desk-item" data-no="12">12</div>
+                        <div class="desk-item" data-no="13">13</div>
+                        <div class="desk-item" data-no="14">14</div>
+                        <div class="desk-item" data-no="15">15</div>
+                        <div class="desk-item" data-no="16">16</div>
+                        <div class="desk-item" data-no="17">17</div>
+                        <div class="desk-item" data-no="18">18</div>
+                        <div class="desk-item" data-no="19">19</div>
+                        <div class="desk-item" data-no="20">20</div>
+                        <div class="desk-item" data-no="21">21</div>
+                        <div class="desk-item" data-no="22">22</div>
+                        <div class="desk-item" data-no="23">23</div>
+                        <div class="desk-item" data-no="24">24</div>
+                    </div>
+                </div>
+                <div class="tunnel">T<br>台</div>
+                <div class="col-right">
+                    <h3>T台右侧 · 25~48桌</h3>
+                    <div class="desk-grid">
+                        <div class="desk-item" data-no="25">25</div>
+                        <div class="desk-item" data-no="26">26</div>
+                        <div class="desk-item" data-no="27">27</div>
+                        <div class="desk-item" data-no="28">28</div>
+                        <div class="desk-item" data-no="29">29</div>
+                        <div class="desk-item" data-no="30">30</div>
+                        <div class="desk-item" data-no="31">31</div>
+                        <div class="desk-item" data-no="32">32</div>
+                        <div class="desk-item" data-no="33">33</div>
+                        <div class="desk-item" data-no="34">34</div>
+                        <div class="desk-item" data-no="35">35</div>
+                        <div class="desk-item" data-no="36">36</div>
+                        <div class="desk-item" data-no="37">37</div>
+                        <div class="desk-item" data-no="38">38</div>
+                        <div class="desk-item" data-no="39">39</div>
+                        <div class="desk-item" data-no="40">40</div>
+                        <div class="desk-item" data-no="41">41</div>
+                        <div class="desk-item" data-no="42">42</div>
+                        <div class="desk-item" data-no="43">43</div>
+                        <div class="desk-item" data-no="44">44</div>
+                        <div class="desk-item" data-no="45">45</div>
+                        <div class="desk-item" data-no="46">46</div>
+                        <div class="desk-item" data-no="47">47</div>
+                        <div class="desk-item" data-no="48">48</div>
+                    </div>
+                </div>
+            </div>
+            <div class="zone-bottom">
+                <h3>迎宾区前方 · 49~60桌</h3>
+                <div class="bottom-grid">
+                    <div class="desk-item" data-no="49">49</div>
+                    <div class="desk-item" data-no="50">50</div>
+                    <div class="desk-item" data-no="51">51</div>
+                    <div class="desk-item" data-no="52">52</div>
+                    <div class="desk-item" data-no="53">53</div>
+                    <div class="desk-item" data-no="54">54</div>
+                    <div class="desk-item" data-no="55">55</div>
+                    <div class="desk-item" data-no="56">56</div>
+                    <div class="desk-item" data-no="57">57</div>
+                    <div class="desk-item" data-no="58">58</div>
+                    <div class="desk-item" data-no="59">59</div>
+                    <div class="desk-item" data-no="60">60</div>
+                </div>
+            </div>
+            <div class="entrance">
+                <span>签到台 · 合影区</span>
+                <span>入口方向 →</span>
+            </div>
+        </div>
+
+        <!-- 单桌详情页面 -->
+        <div class="page-table" id="pageTable">
+            <div class="table-card">
+                <div class="table-head">
+                    <h2 id="tableTitle">第 1 桌</h2>
+                    <select class="class-select" id="typeSelect">
+                        <option value="">请选择桌类型</option>
+                        <option value="男方亲戚">男方亲戚</option>
+                        <option value="女方亲戚">女方亲戚</option>
+                        <option value="男方朋友">男方朋友</option>
+                        <option value="女方朋友">女方朋友</option>
+                        <option value="同事">同事</option>
+                        <option value="同学">同学</option>
+                        <option value="其他">其他</option>
+                    </select>
+                </div>
+                <div class="seat-grid">
+                    <div class="seat-item"><label>座位1</label><input type="text" class="seat"></div>
+                    <div class="seat-item"><label>座位2</label><input type="text" class="seat"></div>
+                    <div class="seat-item"><label>座位3</label><input type="text" class="seat"></div>
+                    <div class="seat-item"><label>座位4</label><input type="text" class="seat"></div>
+                    <div class="seat-item"><label>座位5</label><input type="text" class="seat"></div>
+                    <div class="seat-item"><label>座位6</label><input type="text" class="seat"></div>
+                    <div class="seat-item"><label>座位7</label><input type="text" class="seat"></div>
+                    <div class="seat-item"><label>座位8</label><input type="text" class="seat"></div>
+                    <div class="seat-item"><label>座位9</label><input type="text" class="seat"></div>
+                    <div class="seat-item"><label>座位10</label><input type="text" class="seat"></div>
+                </div>
+            </div>
+        </div>
+        <!--导出弹窗-->
+        <div class="export-modal" id="exportModal">
+            <div class="export-content">
+                <h3>全部座位清单（直接复制）</h3>
+                <br>
+                <textarea id="exportText"></textarea>
+                <br><br>
+                <button class="export-btn" id="closeExportBtn">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const pageMap = document.getElementById('pageMap');
+        const pageTable = document.getElementById('pageTable');
+        const backBtn = document.getElementById('backBtn');
+        const tableTitle = document.getElementById('tableTitle');
+        const typeSelect = document.getElementById('typeSelect');
+        const seatInputs = document.querySelectorAll('.seat');
+        const exportAllBtn = document.getElementById('exportAllBtn');
+        const exportModal = document.getElementById('exportModal');
+        const exportText = document.getElementById('exportText');
+        const closeExportBtn = document.getElementById('closeExportBtn');
+        let currentNo = 0;
+
+        function loadDesk(no){
+            const key = "desk_"+no;
+            const data = JSON.parse(localStorage.getItem(key) || '{"type":"","names":["","","","","","","","","",""]}');
+            typeSelect.value = data.type;
+            seatInputs.forEach((inp,i)=>inp.value=data.names[i]);
+        }
+        function saveDesk(no){
+            const key = "desk_"+no;
+            const names = Array.from(seatInputs).map(i=>i.value);
+            const saveData = {type:typeSelect.value, names:names};
+            localStorage.setItem(key, JSON.stringify(saveData));
+        }
+        //点击桌号
+        document.querySelectorAll('.desk-item').forEach(el=>{
+            el.onclick = ()=>{
+                currentNo = el.dataset.no;
+                tableTitle.innerText = `第 ${currentNo} 桌`;
+                loadDesk(currentNo);
+                pageMap.style.display = 'none';
+                pageTable.style.display = 'block';
+                backBtn.style.display = 'block';
+            }
+        })
+        //返回
+        backBtn.onclick = ()=>{
+            saveDesk(currentNo);
+            pageMap.style.display = 'block';
+            pageTable.style.display = 'none';
+            backBtn.style.display = 'none';
+        }
+        //自动保存
+        typeSelect.onchange = ()=> saveDesk(currentNo);
+        seatInputs.forEach(inp=>inp.oninput = ()=> saveDesk(currentNo));
+
+        //导出全部
+        exportAllBtn.onclick = ()=>{
+            let output = "【婚礼座位总清单】\n\n";
+            for(let i=1;i<=60;i++){
+                const d = JSON.parse(localStorage.getItem("desk_"+i) || '{"type":"","names":["","","","","","","","","",""]}');
+                output += `第${i}桌 | 分类：${d.type || "未设置"}\n`
+                output += `宾客：${d.names.filter(x=>x.trim()).join("、") || "暂无宾客"}\n\n`
+            }
+            exportText.value = output;
+            exportModal.style.display = 'flex';
+        }
+        closeExportBtn.onclick = ()=>{
+            exportModal.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
